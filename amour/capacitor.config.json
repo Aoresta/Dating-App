@@ -1,0 +1,8 @@
+{
+  "appId": "com.aoresta.amour",
+  "appName": "Amour",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

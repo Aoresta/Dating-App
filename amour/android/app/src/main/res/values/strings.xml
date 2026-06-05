@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Amour</string>
+    <string name="title_activity_main">Amour</string>
+    <string name="package_name">com.aoresta.amour</string>
+    <string name="custom_url_scheme">com.aoresta.amour</string>
+    <string name="widget_days_description">Amour days together widget</string>
+    <string name="widget_doodle_description">Amour latest partner doodle widget</string>
+    <string name="widget_mood_description">Amour mood widget</string>
+    <string name="widget_memories_description">Amour memories widget</string>
+    <string name="widget_question_description">Amour couple question widget</string>
+</resources>

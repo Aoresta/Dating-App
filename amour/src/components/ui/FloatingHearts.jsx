@@ -1,0 +1,3 @@
+import { useEffect, useRef } from 'react'
+const icons=['💕','💖','💗','💓','🌸','✨','💫','💝']
+export default function FloatingHearts(){const box=useRef(null);useEffect(()=>{const timer=setInterval(()=>{if(!box.current||box.current.children.length>=6)return;const el=document.createElement('span');el.className='heart-particle';el.textContent=icons[Math.floor(Math.random()*icons.length)];el.style.left=`${Math.random()*100}%`;el.style.fontSize=`${10+Math.random()*14}px`;el.style.animationDuration=`${8+Math.random()*8}s`;el.addEventListener('animationend',()=>el.remove());box.current.appendChild(el)},1700);return()=>clearInterval(timer)},[]);return <div ref={box} aria-hidden="true"/>}

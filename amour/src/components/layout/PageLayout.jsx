@@ -1,0 +1,2 @@
+import FloatingHearts from '../ui/FloatingHearts';import MeshBackground from '../ui/MeshBackground';import InstallPWABanner from '../ui/InstallPWABanner';import TabBar from './TabBar';import { useRealtime } from '../../hooks/useRealtime'
+export default function PageLayout({children,tabbar=true}){useRealtime();return <><MeshBackground/><FloatingHearts/><main className={`safe-top relative z-10 mx-auto min-h-screen max-w-md px-4 ${tabbar?'safe-bottom':'pb-8'}`}><InstallPWABanner/>{children}</main>{tabbar&&<TabBar/>}</>}

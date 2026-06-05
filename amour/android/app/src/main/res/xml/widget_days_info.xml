@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_days_description"
+    android:initialLayout="@layout/amour_data_widget"
+    android:minWidth="120dp"
+    android:minHeight="90dp"
+    android:minResizeWidth="90dp"
+    android:minResizeHeight="70dp"
+    android:resizeMode="horizontal|vertical"
+    android:targetCellWidth="2"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />
