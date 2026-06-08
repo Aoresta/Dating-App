@@ -1,28 +1,32 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { ArrowLeft, RotateCcw, Save, Settings, Trash2 } from 'lucide-react'
+import { ArrowLeft, Image as ImageIcon, RotateCcw, Save, Send, Settings, Trash2 } from 'lucide-react'
 import { Capacitor, registerPlugin } from '@capacitor/core'
 import { differenceInCalendarDays } from 'date-fns'
 import { useAppStore } from '../store/appStore'
 
-const WidgetBridge = registerPlugin('WidgetBridge')
+const WidgetBridge = Capacitor.isNativePlatform() ? registerPlugin('WidgetBridge') : null
 const colors = ['#ff0080', '#bf00ff', '#00ffff', '#ff6600', '#ffff00', '#00ff88', '#ffffff']
 const sizes = [3, 7, 13]
+const BG_KEY = 'amour_doodle_wallpaper'
 
 export default function LockscreenDoodle() {
   const canvas = useRef(null)
   const active = useRef(null)
   const timer = useRef(null)
+  const fileInput = useRef(null)
   const nav = useNavigate()
   const location = useLocation()
-  const { addSharedImage, couple } = useAppStore()
+  const { addDoodle, couple } = useAppStore()
   const [strokes, setStrokes] = useState([])
   const [visible, setVisible] = useState(false)
   const [color, setColor] = useState(colors[0])
   const [width, setWidth] = useState(3)
   const [tool, setTool] = useState('pen')
-  const [saved, setSaved] = useState(false)
-  const background = location.state?.imageData || new URLSearchParams(location.search).get('imageData')
+  const [saved, setSaved] = useState('')
+  const [wallpaper, setWallpaper] = useState(() => localStorage.getItem(BG_KEY) || '')
+  const passedBg = location.state?.imageData || new URLSearchParams(location.search).get('imageData')
+  const background = passedBg || wallpaper
   const days = couple?.start_date ? differenceInCalendarDays(new Date(), new Date(couple.start_date)) : 0
 
   const draw = useCallback(() => {
@@ -109,7 +113,7 @@ export default function LockscreenDoodle() {
   const show = () => {
     setVisible(true)
     clearTimeout(timer.current)
-    timer.current = setTimeout(() => setVisible(false), 3000)
+    timer.current = setTimeout(() => setVisible(false), 4000)
   }
   const point = (e) => {
     const p = e.touches?.[0] || e
@@ -131,27 +135,57 @@ export default function LockscreenDoodle() {
     e.preventDefault()
     active.current = null
   }
-  const toast = () => {
-    setSaved(true)
-    setTimeout(() => setSaved(false), 1800)
+  const toast = (msg) => {
+    setSaved(msg)
+    setTimeout(() => setSaved(''), 1800)
   }
+
+  // Save doodle to doodles table (syncs to partner via Realtime)
   const save = () => {
-    addSharedImage({ url: canvas.current.toDataURL('image/png'), type: 'lockscreen_doodle' })
-    toast()
+    const data = canvas.current.toDataURL('image/png')
+    addDoodle({ data })
+    toast('Saved & sent to partner ✓')
   }
+
+  // Send to partner + set their lockscreen
+  const sendToPartner = async () => {
+    const data = canvas.current.toDataURL('image/png')
+    addDoodle({ data })
+    if (WidgetBridge) await WidgetBridge.setLockscreenWallpaper({ image: data }).catch(() => {})
+    toast('Sent & set as lockscreen ✓')
+  }
+
   const stampDays = () => {
     setStrokes((s) => [...s, { tool: 'stamp', x: innerWidth / 2, y: 110, label: `${days}`, sub: 'days together' }])
   }
-  const setWallpaper = async () => {
+
+  const setMyLockscreen = async () => {
     const image = canvas.current.toDataURL('image/png')
-    if (Capacitor.isNativePlatform()) await WidgetBridge.setLockscreenWallpaper({ image })
-    toast()
+    if (WidgetBridge) await WidgetBridge.setLockscreenWallpaper({ image })
+    toast('Lockscreen set ✓')
+  }
+
+  // Pick a permanent wallpaper background
+  const pickWallpaper = () => fileInput.current?.click()
+  const onWallpaperPicked = (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    const reader = new FileReader()
+    reader.onload = () => {
+      const data = reader.result
+      localStorage.setItem(BG_KEY, data)
+      setWallpaper(data)
+      setStrokes([])
+      toast('Wallpaper set ✓')
+    }
+    reader.readAsDataURL(file)
   }
 
   return (
     <main className="fixed inset-0 z-50 bg-black">
       <canvas ref={canvas} className="h-full w-full" style={{ touchAction: 'none' }} onMouseDown={start} onMouseMove={move} onMouseUp={end} onMouseLeave={end} onTouchStart={start} onTouchMove={move} onTouchEnd={end} />
-      {saved && <div className="lockscreen-toast">Saved ✓</div>}
+      <input ref={fileInput} type="file" accept="image/*" className="hidden" onChange={onWallpaperPicked} />
+      {saved && <div className="lockscreen-toast">{saved}</div>}
       <button onClick={show} className="tap absolute right-4 top-4 rounded-full bg-white/10 p-3 text-white"><Settings size={18} /></button>
       <div onClick={show} className={`absolute inset-x-3 bottom-5 rounded-3xl border border-white/15 bg-black/65 p-3 text-white backdrop-blur-xl transition-opacity duration-500 ${visible ? 'opacity-100' : 'pointer-events-none opacity-0'}`}>
         <div className="flex justify-center gap-2">{colors.map((c) => <button key={c} onClick={() => setColor(c)} className={`h-6 w-6 rounded-full border-2 ${c === color ? 'border-white' : 'border-transparent'}`} style={{ background: c }} />)}</div>
@@ -163,9 +197,13 @@ export default function LockscreenDoodle() {
           <button onClick={() => nav(-1)} className="secondary-btn p-2"><ArrowLeft size={16} /></button>
           <button onClick={() => setStrokes((s) => s.slice(0, -1))} className="secondary-btn p-2"><RotateCcw size={16} /></button>
           <button onClick={() => setStrokes([])} className="secondary-btn p-2"><Trash2 size={16} /></button>
+          <button onClick={pickWallpaper} className="secondary-btn p-2" title="Set wallpaper"><ImageIcon size={16} /></button>
           <button onClick={stampDays} className="secondary-btn px-3 py-2 text-xs">Days</button>
-          <button onClick={save} className="primary-btn px-4 py-2 text-xs"><Save size={15} /> Save</button>
-          <button onClick={setWallpaper} className="primary-btn px-4 py-2 text-xs">Set Lock</button>
+        </div>
+        <div className="mt-2 flex flex-wrap justify-center gap-2">
+          <button onClick={save} className="primary-btn px-3 py-2 text-xs"><Save size={14} /> Save</button>
+          <button onClick={sendToPartner} className="primary-btn px-3 py-2 text-xs"><Send size={14} /> Send</button>
+          <button onClick={setMyLockscreen} className="primary-btn px-3 py-2 text-xs">Set Lock</button>
         </div>
       </div>
     </main>

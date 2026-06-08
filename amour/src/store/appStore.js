@@ -74,7 +74,11 @@ export const useAppStore = create(persist((set, get) => ({
   addWidget: (widgetId) => set(s => ({ activeWidgets: s.activeWidgets.includes(widgetId) ? s.activeWidgets : [...s.activeWidgets, widgetId] })),
   removeWidget: (widgetId) => set(s => ({ activeWidgets: s.activeWidgets.filter(w => w !== widgetId) })),
   reorderWidgets: (widgets) => set({ activeWidgets: widgets }),
-  mergeRealtime: (key, value) => set(s => ({ [key]: [...s[key].filter(x => x.id !== value.id), value] })),
+  mergeRealtime: (key, value) => set(s => {
+    const existing = s[key].filter(x => x.id !== value.id)
+    const prepend = ['memories', 'doodles', 'sharedImages']
+    return { [key]: prepend.includes(key) ? [value, ...existing] : [...existing, value] }
+  }),
   mergeRealtimeMood: (value) => set(s => value.user_id === s.user?.id ? { myMood: value } : { partnerMood: value }),
   setPresence: (online) => set({ partnerOnline: online }),
   setTyping: (typing) => set({ partnerTyping: typing }),
