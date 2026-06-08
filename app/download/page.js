@@ -4,6 +4,7 @@ import { Shell } from "../components";
 const GITHUB_REPO = "Aoresta/Dating-App";
 const APK_DOWNLOAD_URL = `https://github.com/${GITHUB_REPO}/releases/latest/download/amour-release.apk`;
 const RELEASES_URL = `https://github.com/${GITHUB_REPO}/releases/latest`;
+const AMOUR_WEBSITE = "https://amour-sooty.vercel.app";
 
 const products = [
   {
@@ -15,7 +16,7 @@ const products = [
     color: "#c9972b",
     dark: "#5b4216",
     icon: "💛",
-    cta: { label: "Open Dating", href: "https://aoresta.online" },
+    cta: { label: "Coming Soon", href: null },
     platform: "Web"
   },
   {
@@ -27,7 +28,7 @@ const products = [
     color: "#1f6f55",
     dark: "#143e35",
     icon: "💚",
-    cta: { label: "Open Friends", href: "https://aoresta.online" },
+    cta: { label: "Coming Soon", href: null },
     platform: "Web"
   },
   {
@@ -107,11 +108,15 @@ export default function DownloadPage() {
                 {product.cta.label}
                 <span className="cta-arrow">↓</span>
               </a>
-            ) : (
+            ) : product.cta.href ? (
               <a className="product-cta" href={product.cta.href}>
                 {product.cta.label}
                 <span className="cta-arrow">→</span>
               </a>
+            ) : (
+              <span className="product-cta product-cta--disabled">
+                {product.cta.label}
+              </span>
             )}
           </article>
         ))}
@@ -166,9 +171,14 @@ export default function DownloadPage() {
               <a href={RELEASES_URL}>View all releases →</a>
             </p>
           </div>
-          <a className="amour-download-btn" href={APK_DOWNLOAD_URL} download>
-            ↓ Download APK
-          </a>
+          <div className="amour-download-actions">
+            <a className="amour-download-btn" href={APK_DOWNLOAD_URL} download>
+              ↓ Download APK
+            </a>
+            <a className="amour-web-link" href={AMOUR_WEBSITE}>
+              Open Amour Web →
+            </a>
+          </div>
         </div>
       </section>
     </Shell>
