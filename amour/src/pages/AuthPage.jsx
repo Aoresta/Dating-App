@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getAuthRedirectUrl } from '../lib/authRedirect';
 import { useAppStore } from '../store/appStore';
+import { Capacitor } from '@capacitor/core';
+import { Browser } from '@capacitor/browser';
 import MeshBackground from '../components/ui/MeshBackground'
 
 export default function AuthPage() {
@@ -68,14 +70,18 @@ export default function AuthPage() {
 
   const google = async () => {
     if (!supabase) return setMsg('Supabase is not connected.');
-    const { error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: getAuthRedirectUrl(),
+        skipBrowserRedirect: Capacitor.isNativePlatform(),
         queryParams: { access_type: 'offline', prompt: 'consent' }
       }
     });
-    if (error) setMsg(error.message);
+    if (error) return setMsg(error.message);
+    if (Capacitor.isNativePlatform() && data?.url) {
+      await Browser.open({ url: data.url, windowName: '_self' });
+    }
   };
 
   return (

@@ -1,6 +1,7 @@
 import { useEffect } from 'react'
 import { App as CapacitorApp } from '@capacitor/app'
 import { Capacitor } from '@capacitor/core'
+import { Browser } from '@capacitor/browser'
 import { supabase } from '../lib/supabase'
 
 export function useNativeAuthRedirect() {
@@ -15,9 +16,23 @@ export function useNativeAuthRedirect() {
           return
         }
         if (!url?.startsWith('com.aoresta.amour://auth-callback')) return
-        const parsed = new URL(url)
-        const code = parsed.searchParams.get('code')
-        if (code) await supabase.auth.exchangeCodeForSession(code)
+        try { await Browser.close() } catch (_) {}
+        const hash = url.split('#')[1]
+        if (hash) {
+          const params = new URLSearchParams(hash)
+          const accessToken = params.get('access_token')
+          const refreshToken = params.get('refresh_token')
+          if (accessToken && refreshToken) {
+            await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken })
+            return
+          }
+        }
+        const qs = url.split('?')[1]
+        if (qs) {
+          const params = new URLSearchParams(qs)
+          const code = params.get('code')
+          if (code) await supabase.auth.exchangeCodeForSession(code)
+        }
       })
     }
     setup()
