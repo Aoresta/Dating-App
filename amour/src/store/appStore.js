@@ -84,4 +84,9 @@ export const useAppStore = create(persist((set, get) => ({
   setTyping: (typing) => set({ partnerTyping: typing }),
   updateStartDate: (start_date) => set(s => ({ couple: { ...s.couple, start_date } })),
   unpair: () => set({ partner: null, isPaired: false, partnerOnline: false })
-}), { name: 'amour-store', partialize: s => ({ ...s, loading: false }) }))
+}), { name: 'amour-store', partialize: s => ({
+  user: s.user, session: s.session, demoMode: s.demoMode,
+  partner: s.partner, couple: s.couple, isPaired: s.isPaired, coupleCode: s.coupleCode,
+  notes: s.notes, memories: s.memories, myMood: s.myMood, partnerMood: s.partnerMood,
+  sharedImages: s.sharedImages, doodles: s.doodles, activeWidgets: s.activeWidgets
+}) }))
