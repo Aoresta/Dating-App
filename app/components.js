@@ -9,7 +9,8 @@ export function Shell({ children }) {
     ["Media", "/media"],
     ["Table Officer", "/table-officer"],
     ["Gallery", "/gallery"],
-    ["About Us", "/about-us"]
+    ["About Us", "/about-us"],
+    ["Download", "/download"]
   ];
 
   return (
