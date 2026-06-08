@@ -1,0 +1,100 @@
+name: Build Amour APK
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-apk:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: amour/package-lock.json
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install web dependencies
+        working-directory: amour
+        run: npm ci
+
+      - name: Create env file
+        working-directory: amour
+        run: |
+          echo "VITE_SUPABASE_URL=https://vorkypjwihvkyuyexkde.supabase.co" > .env
+          echo "VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvcmt5cGp3aWh2a3l1eXpleGtkZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgwNDc3NTUzLCJleHAiOjIwOTYwNTM1NTN9.C60UkFT7Kxo_XJCXompMc7At4JsLV3fxSHszAPm1AeQ" >> .env
+          echo "VITE_APP_NAME=Amour" >> .env
+          echo "VITE_APP_URL=https://amour-sooty.vercel.app" >> .env
+          echo "VITE_ENABLE_DEMO=false" >> .env
+
+      - name: Build web assets
+        working-directory: amour
+        run: npm run build
+
+      - name: Sync Capacitor
+        working-directory: amour
+        run: npx cap sync android
+
+      - name: Make gradlew executable
+        working-directory: amour/android
+        run: chmod +x gradlew
+
+      - name: Build release APK
+        working-directory: amour/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Sign APK
+        run: |
+          # Find build-tools version
+          BUILD_TOOLS=$(ls $ANDROID_HOME/build-tools/ | sort -V | tail -1)
+          TOOLS_PATH="$ANDROID_HOME/build-tools/$BUILD_TOOLS"
+
+          UNSIGNED_APK="amour/android/app/build/outputs/apk/release/app-release-unsigned.apk"
+          ALIGNED_APK="amour-release-aligned.apk"
+          SIGNED_APK="amour-release.apk"
+
+          # Zipalign
+          "$TOOLS_PATH/zipalign" -v -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+
+          # Sign with apksigner
+          "$TOOLS_PATH/apksigner" sign \
+            --ks amour/signing/amour-release.jks \
+            --ks-pass pass:amour123 \
+            --ks-key-alias amour \
+            --key-pass pass:amour123 \
+            --out "$SIGNED_APK" \
+            "$ALIGNED_APK"
+
+          # Verify signature
+          "$TOOLS_PATH/apksigner" verify --verbose "$SIGNED_APK"
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: amour-release-apk
+          path: amour-release.apk
+
+      - name: Upload APK to GitHub Release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: amour-release.apk

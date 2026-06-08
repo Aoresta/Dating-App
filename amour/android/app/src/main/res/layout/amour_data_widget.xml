@@ -6,7 +6,7 @@
     android:background="@drawable/amour_widget_background"
     android:gravity="center"
     android:orientation="vertical"
-    android:padding="14dp">
+    android:padding="10dp">
 
     <TextView
         android:id="@+id/widget_title"
@@ -16,14 +16,14 @@
         android:gravity="center"
         android:maxLines="1"
         android:textColor="#ff6ab0"
-        android:textSize="11sp"
-        android:textStyle="bold" />
+        android:textSize="10sp" />
 
     <ImageView
         android:id="@+id/widget_image"
         android:layout_width="match_parent"
-        android:layout_height="68dp"
-        android:layout_marginTop="8dp"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:layout_marginTop="4dp"
         android:scaleType="centerCrop"
         android:visibility="gone" />
 
@@ -31,13 +31,13 @@
         android:id="@+id/widget_main"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="6dp"
+        android:layout_marginTop="2dp"
         android:ellipsize="end"
         android:fontFamily="serif"
         android:gravity="center"
         android:maxLines="2"
         android:textColor="#f0e6ff"
-        android:textSize="22sp"
+        android:textSize="28sp"
         android:textStyle="bold" />
 
     <TextView
@@ -46,7 +46,7 @@
         android:layout_height="wrap_content"
         android:ellipsize="end"
         android:gravity="center"
-        android:maxLines="2"
+        android:maxLines="1"
         android:textColor="#d996ff"
-        android:textSize="11sp" />
+        android:textSize="10sp" />
 </LinearLayout>

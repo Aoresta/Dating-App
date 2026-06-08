@@ -64,7 +64,7 @@ export const useAppStore = create(persist((set, get) => ({
     await get().loadCoupleData(get().user.id)
     return { ok: true, message: 'Connected with your partner 💕' }
   },
-  signOut: async () => { if (supabase) await supabase.auth.signOut(); set({ user: null, session: null, demoMode: false, partner: null, couple: null, isPaired: false }) },
+  signOut: async () => { if (supabase) await supabase.auth.signOut(); set({ user: null, session: null, demoMode: false, partner: null, couple: null, isPaired: false, coupleCode: null, partnerOnline: false, partnerTyping: false, notes: [], memories: [], myMood: null, partnerMood: null, sharedImages: [], doodles: [] }) },
   addNote: async (note) => { const value = { id: id(), created_at: new Date().toISOString(), sender_id: get().user.id, sender_name: 'You', type: 'text', ...note }; set(s => ({ notes: [...s.notes, value] })); if (supabase && !get().demoMode) { const { sender_name, ...row } = value; await supabase.from('notes').insert({ ...row, couple_id: get().couple.id }) } },
   addMemory: async (memory) => { const value = { id: id(), created_at: new Date().toISOString(), ...memory }; set(s => ({ memories: [value, ...s.memories] })); if (supabase && !get().demoMode) await supabase.from('memories').insert({ ...value, couple_id: get().couple.id }) },
   setMyMood: async (mood) => { set({ myMood: mood }); if (supabase && !get().demoMode) await supabase.from('moods').upsert({ ...mood, user_id: get().user.id, couple_id: get().couple.id, updated_at: new Date().toISOString() }) },
@@ -74,10 +74,19 @@ export const useAppStore = create(persist((set, get) => ({
   addWidget: (widgetId) => set(s => ({ activeWidgets: s.activeWidgets.includes(widgetId) ? s.activeWidgets : [...s.activeWidgets, widgetId] })),
   removeWidget: (widgetId) => set(s => ({ activeWidgets: s.activeWidgets.filter(w => w !== widgetId) })),
   reorderWidgets: (widgets) => set({ activeWidgets: widgets }),
-  mergeRealtime: (key, value) => set(s => ({ [key]: [...s[key].filter(x => x.id !== value.id), value] })),
+  mergeRealtime: (key, value) => set(s => {
+    const existing = s[key].filter(x => x.id !== value.id)
+    const prepend = ['memories', 'doodles', 'sharedImages']
+    return { [key]: prepend.includes(key) ? [value, ...existing] : [...existing, value] }
+  }),
   mergeRealtimeMood: (value) => set(s => value.user_id === s.user?.id ? { myMood: value } : { partnerMood: value }),
   setPresence: (online) => set({ partnerOnline: online }),
   setTyping: (typing) => set({ partnerTyping: typing }),
   updateStartDate: (start_date) => set(s => ({ couple: { ...s.couple, start_date } })),
   unpair: () => set({ partner: null, isPaired: false, partnerOnline: false })
-}), { name: 'amour-store', partialize: s => ({ ...s, loading: false }) }))
+}), { name: 'amour-store', partialize: s => ({
+  user: s.user, session: s.session, demoMode: s.demoMode,
+  partner: s.partner, couple: s.couple, isPaired: s.isPaired, coupleCode: s.coupleCode,
+  notes: s.notes, memories: s.memories, myMood: s.myMood, partnerMood: s.partnerMood,
+  sharedImages: s.sharedImages, doodles: s.doodles, activeWidgets: s.activeWidgets
+}) }))
