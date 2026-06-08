@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getAuthRedirectUrl } from '../lib/authRedirect';
@@ -15,8 +15,12 @@ export default function AuthPage() {
   const [loading, setLoading] = useState(false);
   const [resetMode, setResetMode] = useState(false);
   const nav = useNavigate();
+  const user = useAppStore(s => s.user);
   const demo = useAppStore(s => s.initDemoMode);
   const showDemo = import.meta.env.VITE_ENABLE_DEMO === 'true';
+
+  // If user is already logged in (e.g. OAuth deep link completed), go to home
+  useEffect(() => { if (user) nav('/home', { replace: true }) }, [user, nav]);
 
   const goDemo = () => { demo(); nav('/home') };
 
