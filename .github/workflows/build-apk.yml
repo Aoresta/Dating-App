@@ -37,6 +37,15 @@ jobs:
         working-directory: amour
         run: npm ci
 
+      - name: Create env file
+        working-directory: amour
+        run: |
+          echo "VITE_SUPABASE_URL=https://vorkypjwihvkyuyexkde.supabase.co" > .env
+          echo "VITE_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZvcmt5cGp3aWh2a3l1eXpleGtkZSIsInJvbGUiOiJhbm9uIiwiaWF0IjoxNzgwNDc3NTUzLCJleHAiOjIwOTYwNTM1NTN9.C60UkFT7Kxo_XJCXompMc7At4JsLV3fxSHszAPm1AeQ" >> .env
+          echo "VITE_APP_NAME=Amour" >> .env
+          echo "VITE_APP_URL=https://amour-sooty.vercel.app" >> .env
+          echo "VITE_ENABLE_DEMO=false" >> .env
+
       - name: Build web assets
         working-directory: amour
         run: npm run build
