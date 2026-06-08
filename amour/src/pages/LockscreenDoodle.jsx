@@ -119,19 +119,16 @@ export default function LockscreenDoodle() {
     e.preventDefault()
     show()
     active.current = { points: [point(e)], color, width, tool }
+    setStrokes((prev) => [...prev, active.current])
   }
   const move = (e) => {
     if (!active.current) return
     e.preventDefault()
     active.current.points.push(point(e))
-    const stroke = active.current
-    setStrokes((s) => [...s.slice(0, -1), stroke])
+    setStrokes((prev) => [...prev])
   }
   const end = (e) => {
     e.preventDefault()
-    if (!active.current) return
-    const stroke = active.current
-    setStrokes((s) => (s.at(-1) === stroke ? s : [...s, stroke]))
     active.current = null
   }
   const toast = () => {
